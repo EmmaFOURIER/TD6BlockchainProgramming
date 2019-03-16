@@ -3,7 +3,6 @@ pragma solidity >=0.4.24;
 import "../openzeppelin-solidity/contracts/token/ERC721/ERC721BasicToken.sol";
 import "../openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "../openzeppelin-solidity/contracts/ownership/Ownable.sol"; 
-import "github.com/Arachnid/solidity-stringutils/strings.sol";
 
 contract DogToken is ERC721BasicToken, Ownable {
 
@@ -44,7 +43,7 @@ contract DogToken is ERC721BasicToken, Ownable {
     }
 
     function declareAnimal(address Owner, string Name, string Breed, uint Age, uint Weight) public {
-        Dog Dogo;
+        Dog memory Dogo;
         Dogo.owner = Owner;
         Dogo.name = Name;
         Dogo.breed = Breed;
@@ -96,12 +95,12 @@ contract DogToken is ERC721BasicToken, Ownable {
         
         string breed1 = DogList[Index1].breed;
         string breed2 = DogList[Index2].breed;
-        string breedPuppy;
+        string memory breedPuppy = " ";
 
         if(compareStrings(breed1, breed2) == true){
             breedPuppy = breed1;
         } else {
-            breedPuppy = breed1.toSlice().concat(breed2.toSlice());
+            breedPuppy = "Bastard";
         }
         
         declareAnimal(msg.sender, namePuppy, breedPuppy, 0, weightPuppy);
