@@ -4,6 +4,7 @@ import "../openzeppelin-solidity/contracts/token/ERC721/ERC721BasicToken.sol";
 import "../openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "../openzeppelin-solidity/contracts/ownership/Ownable.sol"; 
 
+
 contract DogToken is ERC721BasicToken, Ownable {
 
     struct Dog
@@ -14,6 +15,11 @@ contract DogToken is ERC721BasicToken, Ownable {
         string breed;
         uint age;
         uint weight;
+
+        bool Auction;
+        uint price;
+        address bidMax;
+        uint timeAuction;
     }
 
     string public name;
@@ -30,8 +36,7 @@ contract DogToken is ERC721BasicToken, Ownable {
         ticker = "DOG"; 
         name = "DogToken";
         owner = msg.sender;  
-        incrementId = 1
-        ;
+        incrementId = 1;
     }
 
     function RegisterBreeder(address addr) public {
@@ -51,9 +56,12 @@ contract DogToken is ERC721BasicToken, Ownable {
         Dogo.weight = Weight;
         Dogo.Id = incrementId;
 
+        Dogo.Auction = false;
+        Dogo.price = 0;
+
         incrementId ++;
         DogList.push(Dogo);
-        //emit Transfer(msg.sender, msg.sender, Dogo.Id);
+        emit Transfer(msg.sender, msg.sender, Dogo.Id);
     }
 
     function findIndexDog(uint IdDog) private returns (uint){
@@ -87,7 +95,6 @@ contract DogToken is ERC721BasicToken, Ownable {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-
     function breedAnimal(uint IdDog1, uint IdDog2, string namePuppy, uint weightPuppy) public{
 
         uint Index1 = findIndexDog(IdDog1);
@@ -104,5 +111,45 @@ contract DogToken is ERC721BasicToken, Ownable {
         }
         
         declareAnimal(msg.sender, namePuppy, breedPuppy, 0, weightPuppy);
+    }
+
+
+    function CreateAuction(uint prixDepart, uint IdDog)public{
+        require(msg.sender == owner);
+        uint IndexDog = findIndexDog(IdDog);
+
+        require (DogList[IndexDog].Auction == false);
+        DogList[IndexDog].Auction = true; 
+        DogList[IndexDog].price = prixDepart;
+
+        DogList[IndexDog].timeAuction = now;
+    }
+
+    function bidOnAuction(uint bid, uint IdDog)public{
+        uint IndexDog = findIndexDog(IdDog);
+
+        require(DogList[IndexDog].timeAuction + 2 days < now);
+
+        if(DogList[IndexDog].Auction == true){
+            if (DogList[IndexDog].price < bid){
+                DogList[IndexDog].price = bid;
+                DogList[IndexDog].bidMax = msg.sender;
+                emit Transfer(msg.sender, msg.sender, DogList[IndexDog].Id);
+            }
+        }
+    }
+
+    function ClaimAuction(uint IdDog)public{
+        uint IndexDog = findIndexDog(IdDog);
+
+        if(DogList[IndexDog].Auction == true){
+            if(DogList[IndexDog].bidMax == msg.sender)
+            {
+                DogList[IndexDog].Auction = false;
+                DogList[IndexDog].price = 0;
+                DogList[IndexDog].owner = msg.sender;
+            }
+        }
+
     }
 }
